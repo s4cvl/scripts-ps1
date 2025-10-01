@@ -1,7 +1,6 @@
 # ------------------------------
-# speedtest-lan.ps1
-# iPerf3 Client LAN - Windows
-# Test de connexion iperf3 de ce serveur en "client" vers les "serveurs" iperf3
+# iPerf3 Client - Windows
+# Test de connexion iperf3 de ce serveur Windows en "client" vers les "serveurs" iperf3
 # ------------------------------
 
 $servers = @("<IP_SRV_1>,<IP_SRV_2>,...")  # IP des serveurs iPerf3
