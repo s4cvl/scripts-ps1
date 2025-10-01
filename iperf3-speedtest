@@ -1,0 +1,38 @@
+# ------------------------------
+# speedtest-lan.ps1
+# iPerf3 Client LAN - Windows
+# Test de connexion iperf3 de ce serveur en "client" vers les "serveurs" iperf3
+# ------------------------------
+
+$servers = @("<IP_SRV_1>,<IP_SRV_2>,...")  # IP des serveurs iPerf3
+$bandwidth = "2G"  # bande passante cible
+$duration = 10     # durée du test en secondes
+$iperfPath = "C:\iperf3\iperf3.exe"
+
+foreach ($server in $servers) {
+    Write-Host "Testing UDP connection to $server..."
+
+    # Lancer iperf3 UDP
+    $output = & $iperfPath -c $server -u -b $bandwidth -t $duration | Out-String
+
+# Extraire la dernière ligne avec bits/sec
+$line = ($output -split "`n" | Where-Object {$_ -match "bits/sec"} | Select-Object -Last 1).Trim()
+
+# Regex pour extraire chaque valeur correctement
+# Exemple de ligne : [  4]   0.00-10.00 sec  4.71 GBytes  4.03 Gbits/sec  0.123 ms  12/1234 (0.97%)
+if ($line -match "\[\s*\d+\]\s+(\d+\.\d+-\d+\.\d+)\s+sec\s+([\d\.]+\s+\S+)\s+([\d\.]+\s+\S+/sec)\s+([\d\.]+\s+ms)\s+\d+/\d+\s+\((\d+\.\d+%)\)") {
+    $Transfer = $matches[2]
+	$Bandwidth = $matches[3]     # ex: 4.03 Gbits/sec
+    $Jitter = $matches[4]        # ex: 0.123 ms
+    $LossPerc = $matches[5]      # ex: 0.97%
+}
+
+Write-Host "Bandwidth: $Bandwidth"
+Write-Host "Jitter: $Jitter"
+Write-Host "Loss%: $LossPerc"
+
+
+# Ecriture CSV : timestamp, serveur, Transfer, Bandwidth, Jitter, Loss%
+$csvLine = "{0},{1},{2},{3},{4},{5}" -f (Get-Date -Format "dd/MM/yyyy HH:mm:ss"), $server, $Transfer, $Bandwidth, $Jitter, $LossPerc
+Add-Content -Path "C:\iperf3\speedtest-lan-results.csv" -Value $csvLine
+}
